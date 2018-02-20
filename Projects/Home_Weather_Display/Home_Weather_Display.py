@@ -101,6 +101,10 @@ try:
             # Delay between updates.
             sleep(3)
 
+except KeyboardInterrupt as e:
+    if debug:
+        print type(e)
+
 finally:
     print "Turning display off"
     # since we're exiting the program
