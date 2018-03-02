@@ -51,6 +51,14 @@ class NanError(Exception):
     pass
 
 
+# Define a class ZeroError derived from super class Exception for use in raising errors when
+# temp/humidity both return 0.
+
+
+class ZeroError(Exception):
+    pass
+
+
 # Set to True to see debug statements like nan error, False to hide.
 debug = False
 
@@ -66,7 +74,7 @@ symbol = u'\u2103'  # Unicode degrees C.
 potentiometer = 0   # Connect the Grove Rotary Angle Sensor to analog port A0
 led = 8             # Connect the LED to digital port D8
 grovepi.pinMode(potentiometer, 'INPUT')
-grovepi.pinMode(led,"OUTPUT")
+grovepi.pinMode(led, "OUTPUT")
 sleep(1)            # Not sure it's needed, but leave for now.
 adc_ref = 5         # Reference voltage of ADC is 5v
 grove_vcc = 5       # Vcc of the grove interface is normally 5v
@@ -94,33 +102,40 @@ try:
         # DHT in it's own try except to handle nan errors.
         try:
             # get the temperature and Humidity from the DHT sensor
-            [temp, hum] = dht(dht_sensor_port, dht_sensor_type)
+            [tempc, hum] = dht(dht_sensor_port, dht_sensor_type)
 
             # check if we have nans
             # if so, then raise a locally defined NanError exception
-            if isnan(temp) is True or isnan(hum) is True:
+            if isnan(tempc) is True or isnan(hum) is True:
                 raise NanError('nan error')
 
-        except NanError as e:
+            # Check if both temp and humidity are zero
+            # if so, the raise a locally defined ZeroError exception
+            if tempc == 0.0 and hum == 0.0:
+                raise ZeroError('zero error')
+
+        except (NanError, ZeroError) as e:
             if debug:
                 print str(e)
             # Do nothing and retry after short delay.
             sleep(0.25)
             continue
 
-        if temp <= 5:
+        if tempc <= 5:
             setRGB(0, 0, 255)
-        elif 5 < temp < 20:
+        elif 5 < tempc < 20:
             setRGB(0, 255, 0)
         else:
             setRGB(255, 0, 0)
 
-        print '\nTemp:', str(temp) + u'\u2103'  # Unicode degrees C.
+        print '\nTemp:', str(tempc) + u'\u2103'  # Unicode degrees C.
 
         if scale == 'F':
-            temp = temp * 9 / 5 + 32
+            temp = tempc * 9 / 5 + 32
             symbol = u'\u2109'  # Unicode degrees F.
             print 'Temp:', str(temp) + symbol
+        else:
+            temp = tempc
 
         print 'Humi:', str(hum) + '%'
 
@@ -145,16 +160,18 @@ try:
         setText_norefresh("Temp: " + str(temp) + scale + '\n' + "Humidity: " + str(hum) + '%')
 
         # Publish to MQTT.
-        local_client.publish('SNHU/IT697/sensor/data', 'Temp: ' + str(temp) + scale + ', Humi: ' + str(hum) + '%')
-        local_client.publish('SNHU/IT697/sensor/data', 'Ranger: ' + str(ranger))
-        local_client.publish('SNHU/IT697/sensor/data', 'Degrees: ' + str(degrees))
+        # local_client.publish('SNHU/IT697/sensor/data', 'Temp: ' + str(temp) + scale + ', Humi: ' + str(hum) + '%')
+        # local_client.publish('SNHU/IT697/sensor/data', 'Ranger: ' + str(ranger))
+        # local_client.publish('SNHU/IT697/sensor/data', 'Degrees: ' + str(degrees))
         publish_data = {"timestamp": int(time.time() * 1000),
-                        "data": {"temperature": temp, "humidity": hum, "range": ranger, "degrees": degrees}}
+                        "data": {"temperature": tempc, "humidity": hum, "range": ranger, "degrees": degrees}}
         local_client.publish('SNHU/IT697/sensor/data/json', json.dumps(publish_data))
-        remote_client.publish('SNHU/IT697/jeffrey_cutter_snhu_edu/sensor/data/json', json.dumps(publish_data))
+        # remote_client.publish('SNHU/IT697/jeffrey_cutter_snhu_edu/sensor/data/json', json.dumps(publish_data))
 
         # Delay between updates.
-        sleep(2)
+        sleep(3)
+
+        # Keep line spacing consistent in debug mode.
         if debug:
             print
 
