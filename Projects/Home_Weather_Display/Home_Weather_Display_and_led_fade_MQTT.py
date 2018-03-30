@@ -42,6 +42,7 @@ import grovepi
 import grove_rgb_lcd
 import math
 import time
+import uuidgen
 
 # Define a class NanError derived from super class Exception for use in raising Nan errors.
 
@@ -60,6 +61,8 @@ class ZeroError(Exception):
 
 # Set to True to see debug statements like nan error, False to hide.
 debug = False
+
+uuid = uuidgen.generateUuid()
 
 # Setup DHT sensor.
 dht_sensor_port = 7     # connect the DHt sensor to port 7
@@ -230,11 +233,12 @@ try:
         # local_client.publish('SNHU/IT697/sensor/data', 'Degrees: ' + str(degrees))
         publish_data = {"timestamp": int(time.time() * 1000),
                         "data": {"temperature": tempc, "humidity": hum, "range": ranger, "degrees": degrees}}
-        local_client.publish('SNHU/IT697/sensor/data/json', json.dumps(publish_data))
+        #local_client.publish('SNHU/IT697/sensor/data/json', json.dumps(publish_data))
+        local_client.publish('SNHU/IT697/sensor/data/' + uuid, json.dumps(publish_data))
         # remote_client.publish('SNHU/IT697/jeffrey_cutter_snhu_edu/sensor/data/json', json.dumps(publish_data))
 
         # Delay between updates.
-        time.sleep(3)
+        time.sleep(10)
 
         # Keep line spacing consistent in debug mode.
         if debug:
