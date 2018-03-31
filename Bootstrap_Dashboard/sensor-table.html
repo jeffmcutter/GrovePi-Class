@@ -6,8 +6,7 @@
                 <th>_id</th>
                 <th>timestamp</th>
                 <th>datetime</th>
-                <th>temperature</th>
-                <th>humidity</th>
+                <th>datapoints</th>
             </tr>
             </thead>
             <tbody>
@@ -24,7 +23,8 @@
         <td>{{_id}}</td>
         <td>{{timestamp}}</td>
         <td>{{datetime}}</td>
-        <td>{{data.temperature}}</td>
-        <td>{{data.humidity}}</td>
+        {{#each arrayify data}}
+        {{name}}: {{value}}<br>
+        {{/each}}
     </tr>
 </template>
