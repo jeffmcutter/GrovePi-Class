@@ -9,6 +9,7 @@ operation.
 import grovepi
 import grove_rgb_lcd
 import ports
+import math
 
 
 class GroveDevice(object):
@@ -58,7 +59,11 @@ class DHTSensor(GroveDevice):
         self.dht_type = dht_type
 
     def read(self):
-        temperature, humidity = grovepi.dht(self.port, self.dht_type)
+        while True:
+            temperature, humidity = grovepi.dht(self.port, self.dht_type)
+            # Sit here until we don't get NaN's.
+            if math.isnan(temperature) is False and math.isnan(humidity) is False:
+                break
         self.value = {
             "temperature": temperature,
             "humidity": humidity

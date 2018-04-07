@@ -13,6 +13,9 @@ import time
 import json
 import uuidgen
 import Queue
+import grove_rgb_lcd
+
+debug = False
 
 DEVICE_UUID = uuidgen.generateUuid()
 SENSOR_DATA_TOPIC = "SNHU/IT697/sensor/data/"+DEVICE_UUID
@@ -151,16 +154,30 @@ mqtt_client.on_message = on_message
 mqtt_client.connect(MESSAGE_BROKER_URI)
 mqtt_client.loop_start()
 
-time.sleep(1) # give the hardware time to initialize
+time.sleep(1)  # give the hardware time to initialize
 
-while True:
-    try:
-        changedValues = read_sensors_and_actuators()
+try:
+    while True:
+        try:
+            changedValues = read_sensors_and_actuators()
 
-        if changedValues:
-            publish_sensor_data(changedValues)
+            if changedValues:
+                publish_sensor_data(changedValues)
 
-        process_received_messages()
+            process_received_messages()
 
-    except (IOError, TypeError) as e:
-        print("Error", e)
+        except (IOError, TypeError) as e:
+            print("Error", e)
+
+except KeyboardInterrupt as e:
+    if debug:
+        print type(e)
+
+finally:
+    print "Turning display off"
+    grove_rgb_lcd.setText('')
+    grove_rgb_lcd.setRGB(0, 0, 0)
+    #print "Turning LEDs off"
+    #grovepi.analogWrite(RED_LED,0)
+    #grovepi.analogWrite(GREEN_LED,0)
+    #grovepi.analogWrite(BLUE_LED,0)
