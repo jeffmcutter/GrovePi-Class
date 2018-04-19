@@ -1,4 +1,4 @@
-# IoT-GrovePi
+# IoT Experiential Learning Class
 
 This has grown beyond the GrovePi, but since I had this repo here, I'm making the most of it as a collection of artifacts from this particular class.
 
